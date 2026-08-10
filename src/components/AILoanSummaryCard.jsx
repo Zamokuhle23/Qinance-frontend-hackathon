@@ -1,42 +1,26 @@
 import { useState, useEffect } from 'react'
-import { getLoanAdvice, getBusinessHealth } from '../api/agent'
+import { getLoanAdvice } from '../api/agent'
 
 export default function AILoanSummaryCard({ customerId, customerName, onAdviceLoaded }) {
   const [advice, setAdvice] = useState(null)
-  const [health, setHealth] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
     if (!customerId) return
 
-    // Call sequentially to avoid hitting the Gemini API rate limit (429).
-    // Calling both endpoints in parallel causes the second one to be
-    // rate-limited and fail, leaving the UI with health but no advice.
+    // Single API call — the loan advice endpoint already returns
+    // risk, confidence, explanation, suggested amount, strengths & weaknesses.
+    // No need for a separate business health call (avoids Gemini 429 rate limit).
     const loadData = async () => {
       setLoading(true)
       try {
-        // 1. Loan advice first (most important — drives the suggested amount)
-        try {
-          const a = await getLoanAdvice(customerId)
-          const adv = a.data.advice
-          setAdvice(adv)
-          if (onAdviceLoaded) onAdviceLoaded(adv)
-        } catch (e) {
-          console.error('Loan advice failed:', e)
-        }
-
-        // Small delay to let the rate limit reset
-        await new Promise(r => setTimeout(r, 500))
-
-        // 2. Business health second
-        try {
-          const h = await getBusinessHealth(customerId)
-          setHealth(h.data.health)
-        } catch (e) {
-          console.error('Business health failed:', e)
-        }
+        const a = await getLoanAdvice(customerId)
+        const adv = a.data.advice
+        setAdvice(adv)
+        if (onAdviceLoaded) onAdviceLoaded(adv)
       } catch (e) {
+        console.error('Loan advice failed:', e)
         setError('AI advice unavailable.')
       } finally {
         setLoading(false)
@@ -57,13 +41,6 @@ export default function AILoanSummaryCard({ customerId, customerName, onAdviceLo
         <h6 className="card-title d-flex align-items-center gap-2">
           <span>🤖</span> AI Credit Summary — {customerName}
         </h6>
-        {health && (
-          <div className="mb-2">
-            <span className="badge bg-info me-2">Health: {health.health_label} ({health.business_health}/100)</span>
-            <span className="badge bg-secondary me-2">Risk: {health.risk}</span>
-            <span className="badge bg-primary">Confidence: {health.confidence}%</span>
-          </div>
-        )}
         {advice && (
           <>
             <p className="mb-1"><strong>Suggested Loan:</strong> E{advice.suggested_loan_amount}</p>
