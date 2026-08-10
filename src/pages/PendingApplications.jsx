@@ -11,10 +11,6 @@ export default function PendingApplications() {
   const [approvingId, setApprovingId] = useState(null)
   const [customAmounts, setCustomAmounts] = useState({})
 
-  useEffect(() => {
-    loadApps()
-  }, [])
-
   const loadApps = () => {
     setLoading(true)
     getPendingApplications()
@@ -30,6 +26,13 @@ export default function PendingApplications() {
       .catch(() => setError('Failed to load pending applications.'))
       .finally(() => setLoading(false))
   }
+
+  useEffect(() => {
+    loadApps()
+    // Auto-refresh every 5s so AI advice appears once the background thread finishes
+    const interval = setInterval(loadApps, 5000)
+    return () => clearInterval(interval)
+  }, [])
 
   const handleAction = async (appId, action) => {
     setApprovingId(appId)
@@ -56,7 +59,10 @@ export default function PendingApplications() {
     <div className="container py-3">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h4 className="mb-0">Pending Background Applications ({apps.length})</h4>
-        <button className="btn btn-outline-secondary btn-sm" onClick={() => navigate('/customers')}>Back to Directory</button>
+        <div className="d-flex gap-2">
+          <button className="btn btn-outline-secondary btn-sm" onClick={loadApps}>⟳ Refresh</button>
+          <button className="btn btn-outline-secondary btn-sm" onClick={() => navigate('/customers')}>Back to Directory</button>
+        </div>
       </div>
 
       {error && <div className="alert alert-danger mb-3">{error}</div>}
@@ -73,90 +79,108 @@ export default function PendingApplications() {
       ) : (
         <div className="row g-3">
           {apps.map(app => {
-            const maxVal = parseFloat(app.ai_suggested_amount)
+            const maxVal = app.ai_suggested_amount ? parseFloat(app.ai_suggested_amount) : 0
             const inputVal = parseFloat(customAmounts[app.id]) || 0
             const totalDue = round(inputVal + inputVal * 0.20, 2)
             const dailyPay = round(totalDue / 40, 2)
+            const aiReady = app.ai_suggested_amount && app.ai_risk && app.ai_confidence !== null
 
             return (
               <div className="col-12" key={app.id}>
-                <div className="card shadow-sm mb-3 border-start border-4 border-success">
+                <div className={`card shadow-sm mb-3 border-start border-4 ${aiReady ? 'border-success' : 'border-warning'}`}>
                   <div className="card-body">
                     <div className="d-flex justify-content-between align-items-start mb-2">
                       <div>
-                        <span className="badge bg-success-light text-success mb-1">Pre-calculated Advice</span>
+                        <span className={`badge ${aiReady ? 'bg-success-light text-success' : 'bg-warning-light text-warning'} mb-1`}>
+                          {aiReady ? 'Pre-calculated Advice' : '⏳ Gemini Analyzing...'}
+                        </span>
                         <h5 className="fw-bold text-dark mb-0">{app.customer_name}</h5>
                         <p className="text-muted small mb-0">{app.customer_phone} · Location: {app.customer_location || 'Unknown'}</p>
                       </div>
-                      <span className={`badge bg-${app.ai_risk === 'low' ? 'success' : app.ai_risk === 'medium' ? 'warning' : 'danger'}`}>
-                        Risk: {app.ai_risk.toUpperCase()} ({app.ai_confidence}% confidence)
-                      </span>
-                    </div>
-
-                    <div className="alert alert-light border mb-3 py-2 px-3">
-                      <p className="mb-1 small"><strong>Gemini Assessment:</strong> {app.ai_explanation}</p>
-                      {app.ai_reasons?.length > 0 && (
-                        <p className="mb-0 small text-secondary"><strong>Key Factors:</strong> {app.ai_reasons.join(', ')}</p>
+                      {aiReady ? (
+                        <span className={`badge bg-${app.ai_risk === 'low' ? 'success' : app.ai_risk === 'medium' ? 'warning' : 'danger'}`}>
+                          Risk: {app.ai_risk.toUpperCase()} ({app.ai_confidence}% confidence)
+                        </span>
+                      ) : (
+                        <span className="badge bg-secondary">Analyzing...</span>
                       )}
                     </div>
 
-                    <div className="row g-3 align-items-end">
-                      <div className="col-md-3">
-                        <label className="form-label small fw-bold mb-1">Approved Amount</label>
-                        <div className="input-group">
-                          <span className="input-group-text">E</span>
-                          <input
-                            type="number"
-                            className="form-control fw-bold text-primary"
-                            value={customAmounts[app.id] || ''}
-                            max={maxVal}
-                            onChange={(e) => {
-                              const val = parseFloat(e.target.value) || 0
-                              setCustomAmounts(prev => ({ ...prev, [app.id]: val }))
-                            }}
-                          />
+                    {aiReady ? (
+                      <>
+                        <div className="alert alert-light border mb-3 py-2 px-3">
+                          <p className="mb-1 small"><strong>Gemini Assessment:</strong> {app.ai_explanation}</p>
+                          {app.ai_reasons?.length > 0 && (
+                            <p className="mb-0 small text-secondary"><strong>Key Factors:</strong> {app.ai_reasons.join(', ')}</p>
+                          )}
                         </div>
-                        <small className="text-muted">Max AI Suggested: E{maxVal}</small>
-                      </div>
 
-                      <div className="col-md-5">
-                        <div className="border rounded px-3 py-2 bg-light d-flex justify-content-between text-center">
-                          <div>
-                            <span className="small text-muted d-block">Interest</span>
-                            <span className="fw-bold small text-dark">20%</span>
+                        <div className="row g-3 align-items-end">
+                          <div className="col-md-3">
+                            <label className="form-label small fw-bold mb-1">Approved Amount</label>
+                            <div className="input-group">
+                              <span className="input-group-text">E</span>
+                              <input
+                                type="number"
+                                className="form-control fw-bold text-primary"
+                                value={customAmounts[app.id] || ''}
+                                max={maxVal}
+                                onChange={(e) => {
+                                  const val = parseFloat(e.target.value) || 0
+                                  setCustomAmounts(prev => ({ ...prev, [app.id]: val }))
+                                }}
+                              />
+                            </div>
+                            <small className="text-muted">Max AI Suggested: E{maxVal}</small>
                           </div>
-                          <div>
-                            <span className="small text-muted d-block">Duration</span>
-                            <span className="fw-bold small text-dark">40 days</span>
+
+                          <div className="col-md-5">
+                            <div className="border rounded px-3 py-2 bg-light d-flex justify-content-between text-center">
+                              <div>
+                                <span className="small text-muted d-block">Interest</span>
+                                <span className="fw-bold small text-dark">20%</span>
+                              </div>
+                              <div>
+                                <span className="small text-muted d-block">Duration</span>
+                                <span className="fw-bold small text-dark">40 days</span>
+                              </div>
+                              <div>
+                                <span className="small text-muted d-block">Total Due</span>
+                                <span className="fw-bold small text-dark">E{totalDue}</span>
+                              </div>
+                              <div>
+                                <span className="small text-muted d-block">Daily Payment</span>
+                                <span className="fw-bold small text-primary">E{dailyPay}</span>
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <span className="small text-muted d-block">Total Due</span>
-                            <span className="fw-bold small text-dark">E{totalDue}</span>
-                          </div>
-                          <div>
-                            <span className="small text-muted d-block">Daily Payment</span>
-                            <span className="fw-bold small text-primary">E{dailyPay}</span>
+
+                          <div className="col-md-4 d-flex gap-2 justify-content-end">
+                            <button
+                              className="btn btn-success"
+                              disabled={approvingId !== null || inputVal > maxVal || inputVal <= 0}
+                              onClick={() => handleAction(app.id, 'approve')}
+                            >
+                              {approvingId === app.id ? 'Processing...' : 'Approve & Disburse'}
+                            </button>
+                            <button
+                              className="btn btn-outline-danger"
+                              disabled={approvingId !== null}
+                              onClick={() => handleAction(app.id, 'reject')}
+                            >
+                              Reject
+                            </button>
                           </div>
                         </div>
+                      </>
+                    ) : (
+                      <div className="d-flex align-items-center gap-2 py-3">
+                        <div className="spinner-border spinner-border-sm text-warning" role="status" />
+                        <span className="text-muted small">
+                          Gemini is analyzing this customer's payment history in the background. This card will update automatically within a few seconds.
+                        </span>
                       </div>
-
-                      <div className="col-md-4 d-flex gap-2 justify-content-end">
-                        <button
-                          className="btn btn-success"
-                          disabled={approvingId !== null || inputVal > maxVal || inputVal <= 0}
-                          onClick={() => handleAction(app.id, 'approve')}
-                        >
-                          {approvingId === app.id ? 'Processing...' : 'Approve & Disburse'}
-                        </button>
-                        <button
-                          className="btn btn-outline-danger"
-                          disabled={approvingId !== null}
-                          onClick={() => handleAction(app.id, 'reject')}
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>

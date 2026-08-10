@@ -25,10 +25,6 @@ export default function NewLoanChoice() {
   }, [customerId])
 
   const handleImmediate = () => {
-    if (hasActiveLoan) {
-      setError('Customer already has an active loan. They must pay it off before taking an immediate loan.')
-      return
-    }
     navigate(`/customers/${customerId}/offer?amount=200`)
   }
 
@@ -59,9 +55,8 @@ export default function NewLoanChoice() {
         <div className="alert alert-warning mb-3">
           <strong>⚠️ Active Loan Detected</strong>
           <p className="mb-0 small">
-            This customer currently has an active loan. They can still file an async background application,
-            but the loan can only be <strong>approved after the active loan is fully paid</strong>.
-            Immediate loan offers are not available while an active loan exists.
+            This customer currently has an active loan. They can still apply for a new loan, but the new loan can only be
+            <strong> approved after the active loan is fully paid</strong>.
           </p>
         </div>
       )}
@@ -85,11 +80,7 @@ export default function NewLoanChoice() {
 
       <div className="row g-3">
         <div className="col-12">
-          <div
-            className={`card shadow-sm h-100 card-choice ${hasActiveLoan ? 'border-secondary opacity-50' : 'border-primary'}`}
-            style={{ cursor: hasActiveLoan ? 'not-allowed' : 'pointer' }}
-            onClick={handleImmediate}
-          >
+          <div className="card shadow-sm border-primary h-100 card-choice" style={{ cursor: 'pointer' }} onClick={handleImmediate}>
             <div className="card-body d-flex flex-column justify-content-between">
               <div>
                 <div className="d-flex align-items-center gap-2 mb-2">
@@ -100,13 +91,7 @@ export default function NewLoanChoice() {
                   Disburse the loan instantly. View pre-calculated repayment offers and dynamic suggested limit advice on-screen.
                 </p>
               </div>
-              <button
-                className="btn btn-primary w-100 mt-3"
-                onClick={handleImmediate}
-                disabled={hasActiveLoan}
-              >
-                {hasActiveLoan ? 'Blocked — Active Loan Exists' : 'See Offer & Disburse Now'}
-              </button>
+              <button className="btn btn-primary w-100 mt-3" onClick={handleImmediate}>See Offer & Disburse Now</button>
             </div>
           </div>
         </div>
@@ -124,7 +109,7 @@ export default function NewLoanChoice() {
                 </p>
               </div>
               <button className="btn btn-success w-100 mt-3" disabled={submitting} onClick={handleBackground}>
-                {submitting ? 'Submitting to Gemini...' : 'Apply Loan Asynchronously'}
+                {submitting ? 'Submitting...' : 'Apply Loan Asynchronously'}
               </button>
             </div>
           </div>
