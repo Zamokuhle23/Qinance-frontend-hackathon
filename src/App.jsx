@@ -12,6 +12,8 @@ import LoanQualification from './pages/LoanQualification'
 import LoanOffer from './pages/LoanOffer'
 import CustomerHistory from './pages/CustomerHistory'
 import LoanCalculator from './pages/LoanCalculator'
+import NewLoanChoice from './pages/NewLoanChoice'
+import PendingApplications from './pages/PendingApplications'
 
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminCustomers from './pages/admin/AdminCustomers'
@@ -33,6 +35,8 @@ function AppRoutes() {
         <Route path="/batch-collect" element={<PrivateRoute><BatchCollect /></PrivateRoute>} />
         <Route path="/customers" element={<PrivateRoute><CustomerList /></PrivateRoute>} />
         <Route path="/customers/new" element={<PrivateRoute><CreateCustomerLoan /></PrivateRoute>} />
+        <Route path="/customers/pending" element={<PrivateRoute><PendingApplications /></PrivateRoute>} />
+        <Route path="/customers/:customerId/choice" element={<PrivateRoute><NewLoanChoice /></PrivateRoute>} />
         <Route path="/customers/:customerId/qualification" element={<PrivateRoute><LoanQualification /></PrivateRoute>} />
         <Route path="/customers/:customerId/offer" element={<PrivateRoute><LoanOffer /></PrivateRoute>} />
         <Route path="/customers/:customerId/history" element={<PrivateRoute><CustomerHistory /></PrivateRoute>} />

@@ -24,7 +24,7 @@ export default function CustomerList() {
         <h4 className="mb-0">Customers ({customers.length})</h4>
         <div className="d-flex gap-2">
           <Link to="/customers/new" className="btn btn-primary btn-sm">+ New Customer</Link>
-          <Link to="/customers/add-loan" className="btn btn-outline-secondary btn-sm">Add Loan</Link>
+          <Link to="/customers/pending" className="btn btn-outline-secondary btn-sm">Pending Applications</Link>
         </div>
       </div>
 
@@ -71,7 +71,7 @@ export default function CustomerList() {
                   <td>
                     <Link to={`/customers/${c.id}/history`} className="btn btn-outline-primary btn-sm me-1">History</Link>
                     {!c.blacklisted && (
-                      <Link to={`/customers/${c.id}/offer?amount=200`} className="btn btn-outline-success btn-sm">New Loan</Link>
+                      <Link to={`/customers/${c.id}/choice`} className="btn btn-outline-success btn-sm">New Loan</Link>
                     )}
                   </td>
                 </tr>

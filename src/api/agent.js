@@ -22,6 +22,10 @@ export const calcLoan = (data) => client.post('/loan-calculator/', data)
 export const sendToAdmin = (amount) => client.post('/send-to-admin/', { amount })
 export const requestWithdraw = (agentId, amount, note) => client.post(`/admin/agents/${agentId}/withdraw/`, { amount, note })
 
+export const getPendingApplications = () => client.get('/pending-applications/')
+export const createPendingApplication = (customerId, data) => client.post('/pending-applications/', { customer: customerId, ...data })
+export const actionPendingApplication = (applicationId, action, data) => client.post(`/pending-applications/${applicationId}/action/`, { action, ...data })
+
 // ── AI ───────────────────────────────────────────────────────────────────────
 export const getLoanAdvice = (customerId) => client.get(`/ai/loans/${customerId}/advice/`)
 export const getBusinessHealth = (customerId) => client.get(`/ai/customers/${customerId}/health/`)
