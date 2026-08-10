@@ -9,17 +9,41 @@ export default function AILoanSummaryCard({ customerId, customerName, onAdviceLo
 
   useEffect(() => {
     if (!customerId) return
-    Promise.allSettled([getLoanAdvice(customerId), getBusinessHealth(customerId)])
-      .then(([a, h]) => {
-        if (a.status === 'fulfilled') {
-          const adv = a.value.data.advice
+
+    // Call sequentially to avoid hitting the Gemini API rate limit (429).
+    // Calling both endpoints in parallel causes the second one to be
+    // rate-limited and fail, leaving the UI with health but no advice.
+    const loadData = async () => {
+      setLoading(true)
+      try {
+        // 1. Loan advice first (most important — drives the suggested amount)
+        try {
+          const a = await getLoanAdvice(customerId)
+          const adv = a.data.advice
           setAdvice(adv)
           if (onAdviceLoaded) onAdviceLoaded(adv)
+        } catch (e) {
+          console.error('Loan advice failed:', e)
         }
-        if (h.status === 'fulfilled') setHealth(h.value.data.health)
-      })
-      .catch(() => setError('AI advice unavailable.'))
-      .finally(() => setLoading(false))
+
+        // Small delay to let the rate limit reset
+        await new Promise(r => setTimeout(r, 500))
+
+        // 2. Business health second
+        try {
+          const h = await getBusinessHealth(customerId)
+          setHealth(h.data.health)
+        } catch (e) {
+          console.error('Business health failed:', e)
+        }
+      } catch (e) {
+        setError('AI advice unavailable.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
   }, [customerId])
 
   if (loading) return <div className="card shadow-sm mb-3"><div className="card-body text-center text-muted">Loading AI insights…</div></div>
