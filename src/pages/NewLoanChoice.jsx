@@ -35,7 +35,7 @@ export default function NewLoanChoice() {
     try {
       await createPendingApplication(customerId, { requested_amount: 200 })
       setSuccess('Application submitted! Gemini is analyzing history in the background. You can review and approve it from the Pending Applications hub.')
-      setTimeout(() => navigate('/customers'), 3000)
+      setTimeout(() => navigate('/customers/pending'), 2500)
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to submit background application.')
     } finally {

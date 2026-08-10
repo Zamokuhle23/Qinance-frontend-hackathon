@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { BarChart3, Calculator, Crown, CreditCard, LayoutDashboard, LogOut, Menu, Users, X, Zap } from 'lucide-react'
+import { BarChart3, Calculator, Crown, CreditCard, Inbox, LayoutDashboard, LogOut, Menu, Users, X, Zap } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 const agentLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/customers', label: 'Customers', icon: Users },
+  { href: '/customers/pending', label: 'Pending Apps', icon: Inbox },
   { href: '/batch-collect', label: 'Batch collect', icon: Zap },
   { href: '/loan-calculator', label: 'Calculator', icon: Calculator },
 ]
