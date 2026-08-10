@@ -70,7 +70,7 @@ export default function CustomerList() {
                   </td>
                   <td>
                     <Link to={`/customers/${c.id}/history`} className="btn btn-outline-primary btn-sm me-1">History</Link>
-                    {!c.blacklisted && !c.has_active_loan && (
+                    {!c.blacklisted && (
                       <Link to={`/customers/${c.id}/qualification`} className="btn btn-outline-success btn-sm">New Loan</Link>
                     )}
                   </td>
