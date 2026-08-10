@@ -9,7 +9,7 @@ export default function LoanOffer() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   
-  const [maxAllowedAmount, setMaxAllowedAmount] = useState(99999)
+  const [maxAllowedAmount, setMaxAllowedAmount] = useState(null)
   const [currentAmount, setCurrentAmount] = useState(searchParams.get('amount') || 250)
 
   const [data, setData] = useState(null)
@@ -73,7 +73,7 @@ export default function LoanOffer() {
               max={maxAllowedAmount}
               onChange={(e) => {
                 const val = parseFloat(e.target.value) || 0
-                if (val > maxAllowedAmount) {
+                if (maxAllowedAmount !== null && val > maxAllowedAmount) {
                   setError(`Approved amount cannot exceed the AI suggested limit of E${maxAllowedAmount}`)
                 } else {
                   setError('')
@@ -83,7 +83,9 @@ export default function LoanOffer() {
             />
           </div>
           <div className="d-flex justify-content-between mt-1">
-            <small className="text-muted">Max AI Suggested Limit: E{maxAllowedAmount}</small>
+            <small className="text-muted">
+              Max AI Suggested Limit: {maxAllowedAmount !== null ? `E${maxAllowedAmount}` : 'Calculating dynamic limit...'}
+            </small>
             {error && <span className="text-danger small">{error}</span>}
           </div>
         </div>
