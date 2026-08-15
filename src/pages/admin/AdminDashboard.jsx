@@ -43,11 +43,11 @@ export default function AdminDashboard() {
       {/* Stats */}
       <div className="row g-3 mb-4">
         {[
-          { label: 'Total Customers', value: stats.total_customers },
+          { label: 'Total Merchants', value: stats.total_customers },
           { label: 'Total Loans', value: stats.total_loans },
           { label: 'Active Loans', value: stats.active_loans },
           { label: 'All-Time Loaned', value: `E${parseFloat(stats.all_time_loaned || 0).toFixed(2)}` },
-          { label: 'Company Balance', value: `E${parseFloat(stats.company_balance).toFixed(2)}` },
+          { label: 'Company Reserves', value: `E${parseFloat(stats.company_balance).toFixed(2)}` },
         ].map(s => (
           <div className="col-6 col-md-3" key={s.label}>
             <div className="card text-center border-0 shadow-sm">
