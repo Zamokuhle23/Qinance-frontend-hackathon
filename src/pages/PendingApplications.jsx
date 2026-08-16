@@ -82,7 +82,7 @@ export default function PendingApplications() {
             const maxVal = app.ai_suggested_amount ? parseFloat(app.ai_suggested_amount) : 0
             const inputVal = parseFloat(customAmounts[app.id]) || 0
             const totalDue = round(inputVal + inputVal * 0.20, 2)
-            const dailyPay = round(totalDue / 40, 2)
+            const dailyPay = round(totalDue / 60, 2)
             const aiReady = app.ai_suggested_amount && app.ai_risk && app.ai_confidence !== null
 
             return (
@@ -142,7 +142,7 @@ export default function PendingApplications() {
                               </div>
                               <div>
                                 <span className="small text-muted d-block">Duration</span>
-                                <span className="fw-bold small text-dark">40 days</span>
+                                <span className="fw-bold small text-dark">60 days</span>
                               </div>
                               <div>
                                 <span className="small text-muted d-block">Total Due</span>
